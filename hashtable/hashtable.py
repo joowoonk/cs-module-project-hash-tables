@@ -22,7 +22,12 @@ class HashTable:
 
     def __init__(self, capacity):
         # Your code here
-
+        if capacity >= MIN_CAPACITY:
+            self.capacity = capacity
+        else:
+            self.capacity = MIN_CAPACITY
+        
+        self.hashtable = [HashTableEntry(None, None)] *self.capacity
 
     def get_num_slots(self):
         """
@@ -35,7 +40,7 @@ class HashTable:
         Implement this.
         """
         # Your code here
-
+        return self.capacity        
 
     def get_load_factor(self):
         """
@@ -44,16 +49,16 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        return len(self.hashtable) / len(self.capacity)
 
+    # def fnv1(self, key):
+    #     """
+    #     FNV-1 Hash, 64-bit
 
-    def fnv1(self, key):
-        """
-        FNV-1 Hash, 64-bit
-
-        Implement this, and/or DJB2.
-        """
-
-        # Your code here
+    #     Implement this, and/or DJB2.
+    #     """
+    #     pass
+    #     # Your code here
 
 
     def djb2(self, key):
@@ -62,8 +67,13 @@ class HashTable:
 
         Implement this, and/or FNV-1.
         """
+        hash = 5381
+        for x in key:
+            hash = (( hash << 5) + hash) + ord(x)
+    
+        return hash & 0xFFFFFFFF
         # Your code here
-
+        
 
     def hash_index(self, key):
         """
@@ -81,7 +91,24 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        i = self.hash_index(key)
+        current = self.hashtable[i]
+        checking = True
+
+        while checking:
+            if current.key:
+                if current.key != key:
+                    if current.next:
+                        current = current.next
+                    else:
+                        current.next = HashTableEntry(key, value)
+                else:
+                    current.value = value
+                    checking = False
+            else:
+                current.key = key
+                current.value = value
+                checking = False
 
 
     def delete(self, key):
@@ -89,10 +116,30 @@ class HashTable:
         Remove the value stored with the given key.
 
         Print a warning if the key is not found.
+        # warning message, if there is no key.. 
 
         Implement this.
         """
         # Your code here
+        ind = self.hash_index(key)
+
+        current = self.hashtable[ind]
+        found = current.key
+        checking = True
+        while checking == True:
+            if current.key:
+                if current.key != key:
+                    if current.next:
+                        current = current.next
+                    else:
+                        return None
+                else:
+                    found = current.key
+                    current.value = None
+                    return found
+            else:
+                return None
+
 
 
     def get(self, key):
@@ -103,8 +150,24 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        ind = self.hash_index(key)
 
+        current = self.hashtable[ind]
+
+        checking = True
+
+        while checking:
+            if current.key:
+                if current.key != key:
+                    if current.next:
+                        current = current.next
+                    else:
+                        return None
+
+                else:
+                    return current.value
+            else:
+                return None
 
     def resize(self, new_capacity):
         """
@@ -114,7 +177,26 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        self.capacity = new_capacity
 
+        old_hashtable = self.hashtable
+
+        self.hashtable = [HashTableEntry(None, None)] * self.capacity
+
+        checking = False
+
+        for i in old_hashtable:
+            self.put(i.key, i.value)
+
+            if i.next:
+                checking = True
+                current = i.next
+                while checking:
+                    self.put(current.key, current.value)
+                    if not current.next:
+                        checking = False
+                    else:
+                        current = current.next
 
 
 if __name__ == "__main__":
@@ -129,7 +211,7 @@ if __name__ == "__main__":
     ht.put("line_7", "Beware the Jubjub bird, and shun")
     ht.put("line_8", 'The frumious Bandersnatch!"')
     ht.put("line_9", "He took his vorpal sword in hand;")
-    ht.put("line_10", "Long time the manxome foe he sought--")
+    ht.put("line_10", "Long time t he manxome foe he sought--")
     ht.put("line_11", "So rested he by the Tumtum tree")
     ht.put("line_12", "And stood awhile in thought.")
 
@@ -151,3 +233,67 @@ if __name__ == "__main__":
         print(ht.get(f"line_{i}"))
 
     print("")
+
+
+# data = [None] * 16  # Size should be a power of 2
+# ​
+# def my_hash(s):
+# 	"""Beej's naive hashing function"""
+# ​
+# 	sb = s.encode()
+# ​
+# 	total = 0
+# ​
+# 	for b in sb:
+# 		total += b
+# 		total &= 0xffffffff  # add this for a 32-bit hashing function
+# 		#total &= 0xffffffffffffffff  # add this for a 64-bit hashing function
+# ​
+# 	return total
+# ​
+# def get_index(s):
+# 	h = my_hash(s)
+# ​
+# 	i = h % len(data)
+# ​
+# 	return i
+# ​
+# def put(k, v):
+# 	# Get the index into "data" to store "v"
+# 	i = get_index(k)
+# ​
+# 	# Store v there
+# 	data[i] = v
+# ​
+# def get(k):
+# 	i = get_index(k)
+# ​
+# 	return data[i]
+# ​
+# def delete(k):
+# 	i = get_index(k)
+# ​
+# 	data[i] = None
+# ​
+# ​
+# if __name__ == "__main__":
+# ​
+# 	put("beej", 3490)
+# 	put("goats", 999)
+# 	put("beej", "hello")
+# ​
+# 	print(data)
+# ​
+# 	print(get("beej"))
+# ​
+# 	#print(my_hash("beej"))
+# 	#print(my_hash("goats"))
+# ​
+# 	#print(get_index("beej"))
+# 	#print(get_index("goats"))
+# 	#print(get_index("foo"))
+# 	#print(get_index("bar"))
+# 	#print(get_index("baz"))
+# 	#print(get_index("qux"))
+# ​
+# ​
